@@ -5,10 +5,10 @@
 <script type="text/javascript" src="libwebp.js"></script>
 </head>
 <body>
-<h1>BPG Decoding Demo</h1>
-<p>BPG</p>
+<h1>BPG vs. WebP decoding in JavaScript</h1>
+<p>BPG <span id="bpg-result"></span></p>
 <canvas id="bpg-canvas" width="1872" height="1926"></canvas>
-<p>WebP</p>
+<p>WebP <span id="webp-result"></span></p>
 <canvas id="webp-canvas" width="1872" height="1926"></canvas>
 <script>
 (function ()
@@ -69,17 +69,23 @@
     
 
     load("0.bpg", function (data) {
-      var t0 = Date.now();
-      var imageData = bpgDecoder.decode(data);
-      console.log("BPG", Date.now() - t0);
-      ctx0.putImageData(imageData, 0, 0);
+      setTimeout(function () {
+        var t0 = Date.now();
+        var imageData = bpgDecoder.decode(data);
+        console.log("BPG", Date.now() - t0);
+        document.getElementById("bpg-result").innerHTML = "(" + (Date.now() - t0) + "ms)";
+        ctx0.putImageData(imageData, 0, 0);
+      }, 500);
     });
 
     load("0.webp", function (data) {
-      var t0 = Date.now();
-      var imageData = decodeWebp(data, ctx0);
-      console.log("WebP", Date.now() - t0);
-      ctx1.putImageData(imageData, 0, 0);
+      setTimeout(function () {
+        var t0 = Date.now();
+        var imageData = decodeWebp(data, ctx0);
+        console.log("WebP", Date.now() - t0);
+        document.getElementById("webp-result").innerHTML = "(" + (Date.now() - t0) + "ms)";
+        ctx1.putImageData(imageData, 0, 0);
+      }, 500);
     })
 })();
 </script>
