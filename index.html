@@ -1,0 +1,87 @@
+<html>
+<head>
+<meta charset="UTF-8"> 
+<script type="text/javascript" src="libbpg-0.9.1/bpgdec.js"></script>
+<script type="text/javascript" src="libwebp.js"></script>
+</head>
+<body>
+<h1>BPG Decoding Demo</h1>
+<p>BPG</p>
+<canvas id="bpg-canvas" width="1872" height="1926"></canvas>
+<p>WebP</p>
+<canvas id="webp-canvas" width="1872" height="1926"></canvas>
+<script>
+(function ()
+{
+    function load (url, callback) {
+      var request = new XMLHttpRequest();
+      request.open("get", url, true);
+      request.responseType = "arraybuffer";
+      request.onload = function(event) {
+        callback(request.response);
+      };
+      request.send();
+    }
+
+    function decodeWebp(data, ctx) {
+
+      function reorderArgbToRgba (argbData) {
+        var rgbaData = new Uint8Array(argbData.length);
+
+        for (var i = 0; i < argbData.length; i += 4) {
+          rgbaData[i]     = argbData[i + 1];
+          rgbaData[i + 1] = argbData[i + 2];
+          rgbaData[i + 2] = argbData[i + 3];
+          rgbaData[i + 3] = argbData[i];
+        }
+
+        return rgbaData;
+        
+      }
+
+      var webpDecoder = new WebPDecoder();
+
+      data = new Uint8Array(data);
+      var config = webpDecoder.WebPDecoderConfig;
+      var output_buffer = config.j;
+      output_buffer.J = 4;
+      var status = webpDecoder.WebPDecode(data, data.length, config);
+      if (status !== 0) {
+        throw new Error("WebP decode failed");
+      }
+
+      var buffer = ctx.createImageData(output_buffer.width, output_buffer.height);
+      buffer.data.set(reorderArgbToRgba(output_buffer.c.RGBA.ma));
+
+      return buffer;
+
+    }
+
+
+    var canvas0, ctx0, canvas1, ctx1;
+
+    canvas0 = document.getElementById("bpg-canvas");
+    ctx0 = canvas0.getContext("2d");
+    canvas1 = document.getElementById("webp-canvas");
+    ctx1 = canvas1.getContext("2d");
+
+    var bpgDecoder = new BPGDecoder(ctx0);
+    
+
+    load("0.bpg", function (data) {
+      var t0 = Date.now();
+      var imageData = bpgDecoder.decode(data);
+      console.log("BPG", Date.now() - t0);
+      ctx0.putImageData(imageData, 0, 0);
+    });
+
+    load("0.webp", function (data) {
+      var t0 = Date.now();
+      var imageData = decodeWebp(data, ctx0);
+      console.log("WebP", Date.now() - t0);
+      ctx1.putImageData(imageData, 0, 0);
+    })
+})();
+</script>
+</body>
+</html>
